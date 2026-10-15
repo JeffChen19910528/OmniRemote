@@ -15,6 +15,13 @@ public sealed partial class QuickConnectViewModel : ViewModelBase
     public partial string Username { get; set; } = string.Empty;
 
     [ObservableProperty]
+    public partial string? Password { get; set; }
+
+    /// <summary>Save this connection (and its password, in the OS keychain) as a profile.</summary>
+    [ObservableProperty]
+    public partial bool Remember { get; set; } = true;
+
+    [ObservableProperty]
     public partial ProtocolType Protocol { get; set; } = ProtocolType.Ssh;
 
     [ObservableProperty]

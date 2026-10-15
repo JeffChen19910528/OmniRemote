@@ -60,6 +60,12 @@
                                               Background="#313244" Foreground="#CDD6F4"
                                               BorderBrush="#45475A" BorderThickness="1" CornerRadius="4"/>
                             </Grid>
+                            <TextBox Text="{Binding Password}" PasswordChar="*"
+                                     PlaceholderText="Password"
+                                     Background="#313244" Foreground="#CDD6F4"
+                                     BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="6,4"/>
+                            <CheckBox Content="Remember (profile + password)"
+                                      IsChecked="{Binding Remember}" Foreground="#CDD6F4" FontSize="12"/>
                             <ComboBox ItemsSource="{Binding AvailableProtocols}"
                                       SelectedItem="{Binding Protocol}"
                                       Background="#313244" Foreground="#CDD6F4"

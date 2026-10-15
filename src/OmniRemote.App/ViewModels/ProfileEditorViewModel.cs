@@ -9,6 +9,7 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
 {
     private bool _bypassCertConfirmed;
     private bool _hostKeyConfirmed;
+    private readonly Guid? _existingId;
 
     // ── Common fields ──────────────────────────────────────────────────────
 
@@ -19,6 +20,16 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
     [ObservableProperty] public partial string? Description { get; set; }
     [ObservableProperty] public partial ProtocolType Protocol { get; set; } = ProtocolType.Ssh;
     [ObservableProperty] public partial string? ValidationError { get; set; }
+
+    // ── Saved credentials ──────────────────────────────────────────────────
+    // Password is never persisted by the editor itself; MainWindowViewModel hands it to
+    // ICredentialStore (OS keychain) after the profile is saved.
+
+    [ObservableProperty] public partial string? Password { get; set; }
+    [ObservableProperty] public partial bool RememberPassword { get; set; } = true;
+    [ObservableProperty] public partial bool HasSavedPassword { get; set; }
+
+    public bool IsPasswordVisible => Protocol != ProtocolType.Telnet;
 
     // ── TLS bypass (RDP only) ──────────────────────────────────────────────
 
@@ -54,6 +65,7 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
         // OnProtocolChanged resets the guard flags to false at its end,
         // so we re-enable them AFTER the protocol assignment.
         Protocol = existing.Protocol;
+        _existingId = existing.Id;
 
         _bypassCertConfirmed = true;
         _hostKeyConfirmed = true;
@@ -108,6 +120,7 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsBypassCertSettingVisible));
         OnPropertyChanged(nameof(IsHostKeySettingVisible));
         OnPropertyChanged(nameof(IsUsernameRequired));
+        OnPropertyChanged(nameof(IsPasswordVisible));
     }
 
     partial void OnBypassCertificateValidationChanged(bool value)
@@ -207,6 +220,7 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
     {
         ProtocolType.Ssh => new SshConnectionProfile
         {
+            Id = _existingId ?? Guid.NewGuid(),
             Name = Name.Trim(),
             Host = Host.Trim(),
             Port = Port,
@@ -216,6 +230,7 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
         },
         ProtocolType.Sftp => new SftpConnectionProfile
         {
+            Id = _existingId ?? Guid.NewGuid(),
             Name = Name.Trim(),
             Host = Host.Trim(),
             Port = Port,
@@ -225,6 +240,7 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
         },
         ProtocolType.Telnet => new TelnetConnectionProfile
         {
+            Id = _existingId ?? Guid.NewGuid(),
             Name = Name.Trim(),
             Host = Host.Trim(),
             Port = Port,
@@ -232,6 +248,7 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
         },
         ProtocolType.Rdp => new RdpConnectionProfile
         {
+            Id = _existingId ?? Guid.NewGuid(),
             Name = Name.Trim(),
             Host = Host.Trim(),
             Port = Port,

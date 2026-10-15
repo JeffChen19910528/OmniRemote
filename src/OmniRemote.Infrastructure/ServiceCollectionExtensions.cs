@@ -14,7 +14,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddOmniRemoteInfrastructure(this IServiceCollection services, string dbPath)
     {
         services.AddSingleton<ISessionLogRedactor, SessionLogRedactor>();
-        services.AddSingleton<ICredentialStore, WindowsCredentialStore>();
+        var credDir = Path.GetDirectoryName(dbPath) ?? ".";
+        services.AddSingleton<ICredentialStore>(_ => CredentialStoreFactory.Create(credDir));
         services.AddSingleton<IConnectionProfileStore>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<SqliteConnectionProfileStore>>();

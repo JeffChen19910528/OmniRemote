@@ -125,7 +125,7 @@ public sealed class RdpSessionTests
 
             // On Linux: no xfreerdp on empty PATH → null
             // On Windows: mstsc path is absolute (not PATH-dependent), so skip this assertion
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !OperatingSystem.IsMacOS())
             {
                 var locator = new RdpBackendLocator();
                 // Can't reliably null mstsc on Linux (it won't be present anyway), just verify no throw
@@ -268,4 +268,28 @@ public sealed class RdpSessionTests
             return System.Diagnostics.Process.Start(psi);
         }
     }
+}
+
+public sealed class RdpBundledBackendTests
+{
+    [Fact]
+    public void Bundled_freerdp_in_rdp_folder_is_preferred()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), $"rdpb_{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(dir, "rdp"));
+            var name = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(
+                System.Runtime.InteropServices.OSPlatform.Windows) ? "sdl-freerdp.exe" : "sdl-freerdp";
+            var exe = Path.Combine(dir, "rdp", name);
+            File.WriteAllText(exe, "");
+
+            Assert.Equal(exe, new RdpBackendLocator(dir).FindBackend());
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
+
+    [Fact]
+    public void No_rdp_folder_means_no_bundled_backend()
+        => Assert.Null(RdpBackendLocator.FindBundled(Path.Combine(Path.GetTempPath(), $"none_{Guid.NewGuid():N}")));
 }

@@ -58,6 +58,20 @@
                          BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="8,6"/>
             </StackPanel>
 
+            <!-- Password (hidden for Telnet) -->
+            <StackPanel Spacing="4" IsVisible="{Binding IsPasswordVisible}">
+                <TextBlock Text="PASSWORD" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding Password}" PasswordChar="*"
+                         PlaceholderText="leave empty to keep the saved password"
+                         Background="#313244" Foreground="#CDD6F4"
+                         BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="8,6"/>
+                <CheckBox Content="Remember password (stored in the OS keychain)"
+                          IsChecked="{Binding RememberPassword}" Foreground="#CDD6F4"/>
+                <TextBlock Text="A password is already saved for this profile."
+                           Foreground="#A6E3A1" FontSize="11"
+                           IsVisible="{Binding HasSavedPassword}"/>
+            </StackPanel>
+
             <!-- Description -->
             <StackPanel Spacing="4">
                 <TextBlock Text="DESCRIPTION (OPTIONAL)" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>

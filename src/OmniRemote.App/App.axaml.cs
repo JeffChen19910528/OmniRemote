@@ -89,6 +89,7 @@ public partial class App : Application
     {
         services.AddTransient<MainWindowViewModel>(sp => new MainWindowViewModel(
             sp.GetRequiredService<IConnectionProfileStore>(),
-            sp.GetRequiredService<IAdapterRegistry>()));
+            sp.GetRequiredService<IAdapterRegistry>(),
+            sp.GetRequiredService<ICredentialStore>()));
     }
 }

@@ -64,6 +64,52 @@ dotnet publish src/OmniRemote.App/OmniRemote.App.csproj /p:PublishProfile=linux-
 
 Output is placed in `publish/win-x64/` or `publish/linux-x64/` at the solution root.
 
+### Package (self-contained, no .NET install needed)
+
+```bash
+scripts/package.sh                     # win-x64, linux-x64, osx-x64, osx-arm64
+scripts/package.sh win-x64             # selected targets only
+VERSION=1.2.0 scripts/package.sh
+```
+
+Works on Linux, macOS, and Windows (Git Bash); output goes to `dist/`. To bundle an RDP client so
+users install nothing, see [third_party/freerdp/README.md](third_party/freerdp/README.md).
+RDP backend order: bundled FreeRDP (`rdp/` next to the app) → FreeRDP on PATH → Windows `mstsc.exe`.
+
+### Saved passwords
+
+Tick **Remember password** in the profile editor or Quick Connect. Stored in Windows Credential
+Manager; on Linux via `secret-tool` (libsecret-tools) with an encrypted-file fallback; on macOS in
+an AES-GCM encrypted file under the app data folder.
+
+### What to set up before connecting
+
+OmniRemote is only the client; the machine you connect **to** must accept the connection.
+
+| Target | Protocol | Setup on the target |
+|--------|----------|---------------------|
+| Windows | RDP (3389) | Settings → System → Remote Desktop → On. Home editions cannot host RDP (Pro/Enterprise/Server only). The login account must be an administrator or in *Remote Desktop Users*, and have a password. |
+| Linux | SSH / SFTP (22) | Install and start the SSH server: `sudo apt install openssh-server && sudo systemctl enable --now ssh` |
+| Linux | RDP (3389) | Needs an RDP server such as `xrdp`: `sudo apt install xrdp && sudo systemctl enable --now xrdp` |
+| macOS | SSH / SFTP (22) | System Settings → General → Sharing → **Remote Login** → On. |
+| macOS | Desktop | Not supported: macOS Screen Sharing uses VNC, which OmniRemote does not implement. |
+| Any | Telnet (23) | Only for legacy devices; traffic is unencrypted. |
+
+Also check:
+
+- **Firewall / router:** allow the port (22, 3389, 23) on the target. Connecting over the internet needs a
+  port forward or, better, a VPN — avoid exposing 3389 directly.
+- **Self-signed RDP certificate:** if connection fails on certificate trust, enable *Bypass TLS certificate
+  validation* for that profile only (see Security notes).
+- **SSH first connect:** accept the host key when prompted; a later "key changed" warning means the server
+  was reinstalled or something is intercepting the connection.
+- **Client side, RDP:** Windows needs nothing (built-in `mstsc.exe`); Linux needs `xfreerdp`
+  (`sudo apt install freerdp3-x11`); macOS needs `brew install freerdp` — unless the package already
+  bundles FreeRDP in its `rdp/` folder.
+- **Client side, saved passwords on Linux:** `sudo apt install libsecret-tools` to use the system keyring;
+  otherwise an encrypted file is used.
+- **macOS app:** first launch of the unsigned `.app` requires right-click → Open.
+
 ### How to use
 
 1. **Launch OmniRemote.**
@@ -155,6 +201,47 @@ dotnet publish src/OmniRemote.App/OmniRemote.App.csproj /p:PublishProfile=linux-
 ```
 
 輸出檔案位於解決方案根目錄下的 `publish/win-x64/` 或 `publish/linux-x64/`。
+
+### 打包（自帶執行環境，使用者不需安裝 .NET）
+
+```bash
+scripts/package.sh                     # win-x64、linux-x64、osx-x64、osx-arm64
+scripts/package.sh win-x64             # 只打包指定平台
+VERSION=1.2.0 scripts/package.sh
+```
+
+可在 Linux、macOS、Windows（Git Bash）執行，輸出在 `dist/`。若要內附 RDP 用戶端、讓使用者免安裝，
+請見 [third_party/freerdp/README.md](third_party/freerdp/README.md)。
+RDP 後端順序：程式旁 `rdp/` 內附的 FreeRDP → PATH 上的 FreeRDP → Windows 內建 `mstsc.exe`。
+
+### 記住密碼
+
+在連線設定編輯器或 Quick Connect 勾選 **Remember password**。Windows 存於憑證管理員；
+Linux 透過 `secret-tool`（libsecret-tools），不可用時退回加密檔；macOS 存於應用程式資料夾內的 AES-GCM 加密檔。
+
+### 連線前需要的設定
+
+OmniRemote 只是用戶端，**被連線的那台機器**必須先允許連線。
+
+| 目標主機 | 協定 | 目標主機需要的設定 |
+|----------|------|--------------------|
+| Windows | RDP（3389） | 設定 → 系統 → 遠端桌面 → 開啟。家用版無法被 RDP 連入（需專業版／企業版／Server）。登入帳號須為管理員或在「Remote Desktop Users」群組，且帳號要有密碼。 |
+| Linux | SSH / SFTP（22） | 安裝並啟動 SSH 伺服器：`sudo apt install openssh-server && sudo systemctl enable --now ssh` |
+| Linux | RDP（3389） | 需要 RDP 伺服器，例如 `xrdp`：`sudo apt install xrdp && sudo systemctl enable --now xrdp` |
+| macOS | SSH / SFTP（22） | 系統設定 → 一般 → 共享 → 開啟 **遠端登入**。 |
+| macOS | 遠端桌面 | 不支援：macOS 螢幕共享使用 VNC，OmniRemote 未實作 VNC。 |
+| 任意 | Telnet（23） | 僅供舊設備使用，流量未加密。 |
+
+其他注意事項：
+
+- **防火牆／路由器：** 目標主機需放行對應埠號（22、3389、23）。從外網連線需設定埠轉發，建議改用 VPN，
+  避免直接對外開放 3389。
+- **RDP 自簽憑證：** 若因憑證不受信任而連線失敗，僅對該連線設定啟用「略過 TLS 憑證驗證」（見安全性說明）。
+- **SSH 首次連線：** 提示時確認主機金鑰；之後若出現「金鑰已變更」警告，代表伺服器重灌或連線被攔截。
+- **用戶端（RDP）：** Windows 不需額外安裝（內建 `mstsc.exe`）；Linux 需 `xfreerdp`
+  （`sudo apt install freerdp3-x11`）；macOS 需 `brew install freerdp`。若安裝包的 `rdp/` 資料夾已內附 FreeRDP 則不需要。
+- **用戶端（Linux 記住密碼）：** `sudo apt install libsecret-tools` 可使用系統金鑰圈，否則改用加密檔。
+- **macOS 應用程式：** 未簽章的 `.app` 第一次開啟需右鍵 → 開啟。
 
 ### 使用方式
 

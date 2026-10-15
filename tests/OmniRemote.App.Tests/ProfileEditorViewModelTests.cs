@@ -357,3 +357,27 @@ public sealed class ProfileEditorViewModelTests
             Username = protocol == ProtocolType.Telnet ? string.Empty : "user",
         };
 }
+
+public sealed class ProfileEditorCredentialTests
+{
+    [Fact]
+    public void Editing_existing_profile_keeps_its_id_so_saved_password_stays_linked()
+    {
+        var existing = new OmniRemote.Core.Models.SshConnectionProfile { Name = "a", Host = "h", Username = "u" };
+        var editor = new OmniRemote.App.ViewModels.ProfileEditorViewModel(existing);
+
+        Assert.Equal(existing.Id, editor.BuildProfile().Id);
+    }
+
+    [Fact]
+    public void Password_field_hidden_only_for_telnet()
+    {
+        var editor = new OmniRemote.App.ViewModels.ProfileEditorViewModel
+        {
+            Protocol = OmniRemote.Core.Models.ProtocolType.Telnet,
+        };
+        Assert.False(editor.IsPasswordVisible);
+        editor.Protocol = OmniRemote.Core.Models.ProtocolType.Rdp;
+        Assert.True(editor.IsPasswordVisible);
+    }
+}

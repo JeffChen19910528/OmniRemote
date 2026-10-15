@@ -14,6 +14,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 {
     private readonly IConnectionProfileStore _profileStore;
     private readonly IAdapterRegistry _adapterRegistry;
+    private readonly ICredentialStore? _credentialStore;
 
     // ── Profile list ──────────────────────────────────────────────────────
 
@@ -54,8 +55,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(
         IConnectionProfileStore profileStore,
-        IAdapterRegistry adapterRegistry)
+        IAdapterRegistry adapterRegistry,
+        ICredentialStore? credentialStore = null)
     {
+        _credentialStore = credentialStore;
         _profileStore = profileStore;
         _adapterRegistry = adapterRegistry;
     }
@@ -88,7 +91,32 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         var profile = QuickConnect.BuildProfile();
         if (profile is null) return;
+
+        var key = CredentialKeys.For(profile);
+        var remember = QuickConnect.Remember;
+        if (key is not null && _credentialStore is not null && !string.IsNullOrEmpty(QuickConnect.Password))
+        {
+            try { await _credentialStore.SaveAsync(key, QuickConnect.Password); }
+            catch (Exception ex) { StatusMessage = $"Could not save password: {ex.Message}"; }
+        }
+        if (remember)
+        {
+            try
+            {
+                await _profileStore.SaveAsync(profile);
+                await LoadProfilesAsync();
+            }
+            catch (Exception ex) { StatusMessage = $"Failed to save profile: {ex.Message}"; }
+        }
+
         await OpenSessionAsync(profile);
+
+        QuickConnect.Password = null;
+        if (!remember && key is not null && _credentialStore is not null)
+        {
+            // One-off connection: do not leave its password behind.
+            try { await _credentialStore.DeleteAsync(key); } catch { /* best effort */ }
+        }
     }
 
     [RelayCommand]
@@ -114,6 +142,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     public void EditProfile(ConnectionProfile profile)
     {
         var editor = new ProfileEditorViewModel(profile);
+        var key = CredentialKeys.For(profile);
+        if (key is not null && _credentialStore is not null)
+            editor.HasSavedPassword = _credentialStore.LoadAsync(key).GetAwaiter().GetResult() is not null;
         editor.ProfileSaved += OnEditorProfileSaved;
         editor.Cancelled += OnEditorCancelled;
         ActiveEditor = editor;
@@ -124,6 +155,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         try
         {
             await _profileStore.SaveAsync(profile);
+            await SyncPasswordAsync(sender as ProfileEditorViewModel, profile);
             await LoadProfilesAsync();
             ActiveEditor = null;
             StatusMessage = $"Profile '{profile.Name}' saved.";
@@ -132,6 +164,19 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         {
             StatusMessage = $"Failed to save profile: {ex.Message}";
         }
+    }
+
+    private async Task SyncPasswordAsync(ProfileEditorViewModel? editor, ConnectionProfile profile)
+    {
+        var key = CredentialKeys.For(profile);
+        if (editor is null || key is null || _credentialStore is null) return;
+
+        if (!editor.RememberPassword)
+            await _credentialStore.DeleteAsync(key);
+        else if (!string.IsNullOrEmpty(editor.Password))
+            await _credentialStore.SaveAsync(key, editor.Password);
+        // Remember + empty field on an existing profile: keep the stored password unchanged.
+        editor.Password = null;
     }
 
     private void OnEditorCancelled(object? sender, EventArgs e) => ActiveEditor = null;
