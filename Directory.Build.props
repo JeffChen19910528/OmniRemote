@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <!-- Shared across all projects in the solution -->
+    <AnalysisLevel>latest</AnalysisLevel>
+    <Deterministic>true</Deterministic>
+    <!-- Apply strict analysis only to production code (test projects set IsPackable=false) -->
+    <TreatWarningsAsErrors Condition="'$(IsPackable)' != 'false' and '$(OutputType)' != 'WinExe'">true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>

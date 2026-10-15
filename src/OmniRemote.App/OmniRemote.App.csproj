@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OmniRemote.Core\OmniRemote.Core.csproj" />
+    <ProjectReference Include="..\OmniRemote.Infrastructure\OmniRemote.Infrastructure.csproj" />
+    <ProjectReference Include="..\OmniRemote.Protocols.Abstractions\OmniRemote.Protocols.Abstractions.csproj" />
+    <ProjectReference Include="..\OmniRemote.Protocols.Ssh\OmniRemote.Protocols.Ssh.csproj" />
+    <ProjectReference Include="..\OmniRemote.Protocols.Sftp\OmniRemote.Protocols.Sftp.csproj" />
+    <ProjectReference Include="..\OmniRemote.Protocols.Telnet\OmniRemote.Protocols.Telnet.csproj" />
+    <ProjectReference Include="..\OmniRemote.Protocols.Rdp\OmniRemote.Protocols.Rdp.csproj" />
+  </ItemGroup>
+</Project>

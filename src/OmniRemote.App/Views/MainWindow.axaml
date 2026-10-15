@@ -1,0 +1,255 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OmniRemote.App.ViewModels"
+        xmlns:models="using:OmniRemote.Core.Models"
+        xmlns:views="using:OmniRemote.App.Views"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
+        x:Class="OmniRemote.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="OmniRemote"
+        MinWidth="800" MinHeight="500">
+
+    <Window.Resources>
+        <views:ConnectionStateToColorConverter x:Key="StateToColor"/>
+    </Window.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Title bar -->
+        <Border Grid.Row="0" Background="#1E1E2E" Padding="12,8">
+            <TextBlock Text="OmniRemote" FontSize="18" FontWeight="SemiBold" Foreground="White"/>
+        </Border>
+
+        <!-- Main content: left panel + workspace -->
+        <Grid Grid.Row="1" ColumnDefinitions="260,*">
+
+            <!-- Left panel: connection manager -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,*,Auto"
+                  Background="#181825">
+
+                <!-- Search -->
+                <Border Grid.Row="0" Padding="8,8,8,4">
+                    <TextBox Text="{Binding SearchText}"
+                             PlaceholderText="Search connections…"
+                             Background="#313244" Foreground="#CDD6F4"
+                             BorderBrush="#45475A" BorderThickness="1"
+                             CornerRadius="4" Padding="8,6"/>
+                </Border>
+
+                <!-- Quick Connect form -->
+                <Border Grid.Row="1" Padding="8,4" BorderBrush="#313244" BorderThickness="0,0,0,1">
+                    <Expander Header="Quick Connect" Foreground="#CDD6F4" Background="#181825">
+                        <StackPanel Spacing="6" Margin="0,6,0,4"
+                                    DataContext="{Binding QuickConnect}">
+                            <TextBox Text="{Binding Host}"
+                                     PlaceholderText="Host"
+                                     Background="#313244" Foreground="#CDD6F4"
+                                     BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="6,4"/>
+                            <Grid ColumnDefinitions="*,80">
+                                <TextBox Grid.Column="0" Text="{Binding Username}"
+                                         PlaceholderText="Username"
+                                         Background="#313244" Foreground="#CDD6F4"
+                                         BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="6,4"
+                                         Margin="0,0,4,0"/>
+                                <NumericUpDown Grid.Column="1" Value="{Binding Port}"
+                                              Minimum="1" Maximum="65535"
+                                              FormatString="0"
+                                              Background="#313244" Foreground="#CDD6F4"
+                                              BorderBrush="#45475A" BorderThickness="1" CornerRadius="4"/>
+                            </Grid>
+                            <ComboBox ItemsSource="{Binding AvailableProtocols}"
+                                      SelectedItem="{Binding Protocol}"
+                                      Background="#313244" Foreground="#CDD6F4"
+                                      BorderBrush="#45475A" BorderThickness="1" CornerRadius="4"
+                                      HorizontalAlignment="Stretch"/>
+                            <TextBlock Text="{Binding ValidationError}" Foreground="#F38BA8"
+                                       IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                       FontSize="11" TextWrapping="Wrap"/>
+                            <Button Content="Connect"
+                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).QuickConnectCommand}"
+                                    HorizontalAlignment="Stretch"
+                                    Background="#89B4FA" Foreground="#1E1E2E"
+                                    FontWeight="SemiBold" CornerRadius="4" Padding="0,6"/>
+                        </StackPanel>
+                    </Expander>
+                </Border>
+
+                <!-- New profile button -->
+                <Button Grid.Row="2"
+                        Content="+ New Profile"
+                        Command="{Binding NewProfileCommand}"
+                        HorizontalAlignment="Stretch"
+                        Background="#313244" Foreground="#A6E3A1"
+                        BorderThickness="0" CornerRadius="0" Padding="12,6"
+                        Margin="8,4"/>
+
+                <!-- Saved profiles list -->
+                <ListBox Grid.Row="3"
+                         ItemsSource="{Binding FilteredProfiles}"
+                         Background="#181825"
+                         SelectionMode="Single">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:ConnectionProfile">
+                            <Grid ColumnDefinitions="40,*,Auto,Auto,Auto" Margin="4,2">
+                                <TextBlock Grid.Column="0" Text="{Binding Protocol}"
+                                           Foreground="#89DCEB" FontSize="11"
+                                           VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Spacing="1">
+                                    <TextBlock Text="{Binding Name}" Foreground="#CDD6F4" FontSize="13"/>
+                                    <TextBlock Text="{Binding Host}" Foreground="#6C7086" FontSize="11"/>
+                                </StackPanel>
+                                <!-- Bypass warning indicator -->
+                                <TextBlock Grid.Column="2" Text="⚠"
+                                           Foreground="#F9E2AF" FontSize="13"
+                                           IsVisible="{Binding IsBypassActive}"
+                                           VerticalAlignment="Center" Margin="4,0"
+                                           ToolTip.Tip="Security validation is weakened for this profile"/>
+                                <!-- Edit button -->
+                                <Button Grid.Column="3" Content="✏"
+                                        Foreground="#89B4FA" Background="Transparent"
+                                        BorderThickness="0" Padding="4,0"
+                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).EditProfileCommand}"
+                                        CommandParameter="{Binding}"/>
+                                <!-- Connect button -->
+                                <Button Grid.Column="4" Content="▶"
+                                        Foreground="#A6E3A1" Background="Transparent"
+                                        BorderThickness="0" Padding="6,0"
+                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ConnectProfileCommand}"
+                                        CommandParameter="{Binding}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Reload profiles button -->
+                <Button Grid.Row="4"
+                        Content="Reload Profiles"
+                        Command="{Binding LoadProfilesCommand}"
+                        HorizontalAlignment="Stretch"
+                        Background="#313244" Foreground="#CDD6F4"
+                        BorderThickness="0" CornerRadius="0" Padding="0,8"
+                        Margin="8"/>
+            </Grid>
+
+            <!-- Right panel: profile editor OR session workspace -->
+            <Grid Grid.Column="1" x:DataType="vm:MainWindowViewModel">
+
+                <!-- Profile editor (shown when creating/editing a profile) -->
+                <ContentControl
+                    Content="{Binding ActiveEditor}"
+                    IsVisible="{Binding ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <ContentControl.ContentTemplate>
+                        <DataTemplate x:DataType="vm:ProfileEditorViewModel">
+                            <views:ProfileEditorView/>
+                        </DataTemplate>
+                    </ContentControl.ContentTemplate>
+                </ContentControl>
+
+                <!-- Session workspace (shown when no editor is open) -->
+                <Grid Background="#1E1E2E"
+                      IsVisible="{Binding ActiveEditor, Converter={x:Static ObjectConverters.IsNull}}">
+
+                    <!-- Empty state (no sessions) -->
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Spacing="8"
+                                IsVisible="{Binding !Sessions.Count}">
+                        <TextBlock Text="No active sessions"
+                                   Foreground="#585B70" FontSize="18"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Use Quick Connect or select a saved profile to start a session."
+                                   Foreground="#45475A" FontSize="13"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Tab control (visible when sessions exist) -->
+                    <TabControl ItemsSource="{Binding Sessions}"
+                                SelectedItem="{Binding ActiveSession}"
+                                Background="#1E1E2E"
+                                IsVisible="{Binding Sessions.Count}">
+                        <TabControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:SessionTabViewModel">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Ellipse Width="8" Height="8" VerticalAlignment="Center">
+                                        <Ellipse.Fill>
+                                            <SolidColorBrush Color="{Binding State,
+                                                Converter={StaticResource StateToColor}}"/>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                    <!-- Bypass warning indicator in tab header -->
+                                    <TextBlock Text="⚠"
+                                               Foreground="#F9E2AF" FontSize="12"
+                                               IsVisible="{Binding IsBypassActive}"
+                                               VerticalAlignment="Center"
+                                               ToolTip.Tip="Security validation is weakened for this session"/>
+                                    <TextBlock Text="{Binding DisplayName}"
+                                               Foreground="#CDD6F4" VerticalAlignment="Center"
+                                               MaxWidth="160" TextTrimming="CharacterEllipsis"/>
+                                    <Button Content="✕"
+                                            Background="Transparent" BorderThickness="0"
+                                            Foreground="#585B70" Padding="2,0"
+                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CloseSessionCommand}"
+                                            CommandParameter="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </TabControl.ItemTemplate>
+                        <TabControl.ContentTemplate>
+                            <DataTemplate x:DataType="vm:SessionTabViewModel">
+                                <Grid RowDefinitions="Auto,Auto,Auto,*">
+                                    <!-- Security warning banner (Telnet: always visible) -->
+                                    <Border Grid.Row="0"
+                                            Background="#F38BA8" Padding="10,6"
+                                            IsVisible="{Binding SecurityWarning,
+                                                Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                        <TextBlock Text="{Binding SecurityWarning}"
+                                                   Foreground="#1E1E2E" FontWeight="SemiBold"
+                                                   FontSize="12" TextWrapping="Wrap"/>
+                                    </Border>
+                                    <!-- Bypass warning banner (per-profile bypass active) -->
+                                    <Border Grid.Row="1"
+                                            Background="#3B2A00" Padding="10,6"
+                                            IsVisible="{Binding IsBypassActive}">
+                                        <TextBlock Text="⚠  Security validation is weakened for this session. Host-key or certificate checking is disabled."
+                                                   Foreground="#F9E2AF" FontSize="12"
+                                                   TextWrapping="Wrap"/>
+                                    </Border>
+                                    <!-- Error message -->
+                                    <Border Grid.Row="2"
+                                            Background="#45475A" Padding="10,6"
+                                            IsVisible="{Binding ErrorMessage,
+                                                Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                        <TextBlock Text="{Binding ErrorMessage}"
+                                                   Foreground="#F38BA8" FontSize="12"
+                                                   TextWrapping="Wrap"/>
+                                    </Border>
+                                    <!-- Session content area -->
+                                    <Border Grid.Row="3" Background="#181825">
+                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                    Spacing="8">
+                                            <TextBlock Text="{Binding DisplayName}"
+                                                       Foreground="#CDD6F4" FontSize="16" FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding State}"
+                                                       Foreground="#6C7086" FontSize="13"
+                                                       HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </TabControl.ContentTemplate>
+                    </TabControl>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- Status bar -->
+        <Border Grid.Row="2" Background="#181825" Padding="12,4"
+                BorderBrush="#313244" BorderThickness="0,1,0,0">
+            <TextBlock Text="{Binding StatusMessage}"
+                       Foreground="#CDD6F4" FontSize="12"/>
+        </Border>
+
+    </Grid>
+</Window>

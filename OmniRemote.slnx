@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OmniRemote.App/OmniRemote.App.csproj" />
+    <Project Path="src/OmniRemote.Core/OmniRemote.Core.csproj" />
+    <Project Path="src/OmniRemote.Infrastructure/OmniRemote.Infrastructure.csproj" />
+    <Project Path="src/OmniRemote.Protocols.Abstractions/OmniRemote.Protocols.Abstractions.csproj" />
+    <Project Path="src/OmniRemote.Protocols.Rdp/OmniRemote.Protocols.Rdp.csproj" />
+    <Project Path="src/OmniRemote.Protocols.Sftp/OmniRemote.Protocols.Sftp.csproj" />
+    <Project Path="src/OmniRemote.Protocols.Ssh/OmniRemote.Protocols.Ssh.csproj" />
+    <Project Path="src/OmniRemote.Protocols.Telnet/OmniRemote.Protocols.Telnet.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OmniRemote.App.Tests/OmniRemote.App.Tests.csproj" />
+    <Project Path="tests/OmniRemote.Core.Tests/OmniRemote.Core.Tests.csproj" />
+    <Project Path="tests/OmniRemote.Infrastructure.Tests/OmniRemote.Infrastructure.Tests.csproj" />
+    <Project Path="tests/OmniRemote.Protocols.Tests/OmniRemote.Protocols.Tests.csproj" />
+  </Folder>
+</Solution>
