@@ -81,6 +81,8 @@ for rid in "${TARGETS[@]}"; do
   base="OmniRemote-$VERSION-$rid"
   case "$rid" in
     win-*)
+      # Rename so the zip entry is clearly OmniRemote.exe, not OmniRemote.App.exe
+      [ -f "$pub/OmniRemote.App.exe" ] && mv "$pub/OmniRemote.App.exe" "$pub/OmniRemote.exe"
       make_zip "$pub" "$DIST/$base.zip" ;;
     linux-*)
       chmod +x "$pub/OmniRemote.App" 2>/dev/null || true

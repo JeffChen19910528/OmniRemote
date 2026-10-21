@@ -1,6 +1,7 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using OmniRemote.App.Services;
 using OmniRemote.Core.Models;
 
 namespace OmniRemote.App.ViewModels;
@@ -41,11 +42,51 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
     [ObservableProperty] public partial bool DisableStrictHostKeyChecking { get; set; }
     [ObservableProperty] public partial bool IsHostKeyConfirmationVisible { get; set; }
 
+    // ── RDP display settings ───────────────────────────────────────────────
+
+    private static readonly RdpResolutionPreset _defaultPreset = new("1920 × 1080", 1920, 1080);
+
+    public static RdpResolutionPreset[] RdpPresets { get; } =
+    [
+        new("1280 × 720",  1280,  720),
+        new("1280 × 800",  1280,  800),
+        new("1280 × 1024", 1280, 1024),
+        new("1366 × 768",  1366,  768),
+        new("1600 × 900",  1600,  900),
+        _defaultPreset,
+        new("2560 × 1440", 2560, 1440),
+        RdpResolutionPreset.Custom,
+    ];
+
+    [ObservableProperty] public partial bool RdpFullscreen { get; set; }
+    [ObservableProperty] public partial int RdpDesktopWidth { get; set; } = 1920;
+    [ObservableProperty] public partial int RdpDesktopHeight { get; set; } = 1080;
+    [ObservableProperty] public partial RdpResolutionPreset? SelectedRdpPreset { get; set; } = _defaultPreset;
+
+    partial void OnRdpFullscreenChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsRdpResolutionVisible));
+        OnPropertyChanged(nameof(IsRdpCustomResolutionVisible));
+    }
+
+    partial void OnSelectedRdpPresetChanged(RdpResolutionPreset? value)
+    {
+        if (value is { IsCustom: false })
+        {
+            RdpDesktopWidth = value.Width;
+            RdpDesktopHeight = value.Height;
+        }
+        OnPropertyChanged(nameof(IsRdpCustomResolutionVisible));
+    }
+
     // ── Visibility helpers ─────────────────────────────────────────────────
 
     public bool IsBypassCertSettingVisible => Protocol == ProtocolType.Rdp;
     public bool IsHostKeySettingVisible => Protocol == ProtocolType.Ssh || Protocol == ProtocolType.Sftp;
     public bool IsUsernameRequired => Protocol != ProtocolType.Telnet;
+    public bool IsRdpDisplayVisible => Protocol == ProtocolType.Rdp;
+    public bool IsRdpResolutionVisible => Protocol == ProtocolType.Rdp && !RdpFullscreen;
+    public bool IsRdpCustomResolutionVisible => IsRdpResolutionVisible && SelectedRdpPreset?.IsCustom == true;
 
     public ProtocolType[] AvailableProtocols { get; } =
         [ProtocolType.Ssh, ProtocolType.Sftp, ProtocolType.Telnet, ProtocolType.Rdp];
@@ -91,6 +132,15 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
             _ => false,
         };
 
+        if (existing is RdpConnectionProfile rdpProfile)
+        {
+            RdpFullscreen = rdpProfile.Fullscreen;
+            RdpDesktopWidth = rdpProfile.DesktopWidth;
+            RdpDesktopHeight = rdpProfile.DesktopHeight;
+            SelectedRdpPreset = Array.Find(RdpPresets, p => !p.IsCustom && p.Width == rdpProfile.DesktopWidth && p.Height == rdpProfile.DesktopHeight)
+                ?? RdpResolutionPreset.Custom;
+        }
+
         _bypassCertConfirmed = false;
         _hostKeyConfirmed = false;
     }
@@ -121,6 +171,9 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsHostKeySettingVisible));
         OnPropertyChanged(nameof(IsUsernameRequired));
         OnPropertyChanged(nameof(IsPasswordVisible));
+        OnPropertyChanged(nameof(IsRdpDisplayVisible));
+        OnPropertyChanged(nameof(IsRdpResolutionVisible));
+        OnPropertyChanged(nameof(IsRdpCustomResolutionVisible));
     }
 
     partial void OnBypassCertificateValidationChanged(bool value)
@@ -187,24 +240,25 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
     {
         ValidationError = null;
 
+        var loc = LocalizationService.Instance;
         if (string.IsNullOrWhiteSpace(Name))
         {
-            ValidationError = "Name is required.";
+            ValidationError = loc.ErrorNameRequired;
             return;
         }
         if (string.IsNullOrWhiteSpace(Host))
         {
-            ValidationError = "Host is required.";
+            ValidationError = loc.ErrorHostRequired;
             return;
         }
         if (IsUsernameRequired && string.IsNullOrWhiteSpace(Username))
         {
-            ValidationError = "Username is required for this protocol.";
+            ValidationError = loc.ErrorUsernameRequired;
             return;
         }
         if (Port is < 1 or > 65535)
         {
-            ValidationError = "Port must be between 1 and 65535.";
+            ValidationError = loc.ErrorPortRange;
             return;
         }
 
@@ -255,7 +309,17 @@ public sealed partial class ProfileEditorViewModel : ViewModelBase
             Username = Username.Trim(),
             Description = Description?.Trim(),
             BypassCertificateValidation = BypassCertificateValidation,
+            Fullscreen = RdpFullscreen,
+            DesktopWidth = RdpDesktopWidth,
+            DesktopHeight = RdpDesktopHeight,
         },
         _ => throw new InvalidOperationException($"Unknown protocol: {Protocol}"),
     };
+}
+
+public sealed record RdpResolutionPreset(string Label, int Width, int Height)
+{
+    public bool IsCustom => Width == 0;
+    public static readonly RdpResolutionPreset Custom = new("Custom", 0, 0);
+    public override string ToString() => Label;
 }

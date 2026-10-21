@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using OmniRemote.App.Services;
 using OmniRemote.Core.Models;
 
 namespace OmniRemote.App.ViewModels;
@@ -46,14 +47,15 @@ public sealed partial class QuickConnectViewModel : ViewModelBase
     {
         ValidationError = null;
 
+        var loc = LocalizationService.Instance;
         if (string.IsNullOrWhiteSpace(Host))
         {
-            ValidationError = "Host is required.";
+            ValidationError = loc.ErrorHostRequired;
             return null;
         }
         if (Port is < 1 or > 65535)
         {
-            ValidationError = "Port must be between 1 and 65535.";
+            ValidationError = loc.ErrorPortRange;
             return null;
         }
 

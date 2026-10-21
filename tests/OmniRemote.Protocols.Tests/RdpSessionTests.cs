@@ -179,6 +179,93 @@ public sealed class RdpSessionTests
         Assert.Contains("mstsc", backend, StringComparison.OrdinalIgnoreCase);
     }
 
+    // ── Argument generation — FreeRDP ─────────────────────────────────────
+
+    [Fact]
+    public async Task FreeRdp_windowed_passes_width_and_height_args()
+    {
+        var launcher = new CapturingProcessLauncher();
+        var profile = new RdpConnectionProfile
+        {
+            Name = "Test", Host = "192.168.1.1", Username = "user",
+            Fullscreen = false, DesktopWidth = 1920, DesktopHeight = 1080,
+        };
+        var session = MakeSession(new FixedBackendLocator("/fake/xfreerdp"), profile, launcher);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => session.ConnectAsync());
+
+        Assert.NotNull(launcher.CapturedPsi);
+        Assert.Contains("/w:1920", launcher.CapturedPsi!.ArgumentList);
+        Assert.Contains("/h:1080", launcher.CapturedPsi.ArgumentList);
+        Assert.DoesNotContain("/f", launcher.CapturedPsi.ArgumentList);
+    }
+
+    [Fact]
+    public async Task FreeRdp_fullscreen_passes_f_flag_and_no_resolution_args()
+    {
+        var launcher = new CapturingProcessLauncher();
+        var profile = new RdpConnectionProfile
+        {
+            Name = "Test", Host = "192.168.1.1", Username = "user",
+            Fullscreen = true,
+        };
+        var session = MakeSession(new FixedBackendLocator("/fake/xfreerdp"), profile, launcher);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => session.ConnectAsync());
+
+        Assert.NotNull(launcher.CapturedPsi);
+        Assert.Contains("/f", launcher.CapturedPsi!.ArgumentList);
+        Assert.DoesNotContain("/w:1920", launcher.CapturedPsi.ArgumentList);
+        Assert.DoesNotContain("/h:1080", launcher.CapturedPsi.ArgumentList);
+    }
+
+    // ── Argument generation — mstsc ───────────────────────────────────────
+
+    [Fact]
+    public async Task Mstsc_windowed_rdp_file_has_correct_resolution_and_screen_mode()
+    {
+        var launcher = new CapturingProcessLauncher();
+        var profile = new RdpConnectionProfile
+        {
+            Name = "Test", Host = "192.168.1.1", Username = "user",
+            Fullscreen = false, DesktopWidth = 1600, DesktopHeight = 900,
+        };
+        var session = MakeSession(new FixedBackendLocator("mstsc.exe"), profile, launcher);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => session.ConnectAsync());
+
+        // Process never started → .rdp file exists; read before DisposeAsync removes it.
+        var rdpPath = launcher.CapturedPsi!.ArgumentList[0];
+        var content = File.ReadAllText(rdpPath);
+        await session.DisposeAsync();
+
+        Assert.Contains("screen mode id:i:1", content);
+        Assert.Contains("desktopwidth:i:1600", content);
+        Assert.Contains("desktopheight:i:900", content);
+    }
+
+    [Fact]
+    public async Task Mstsc_fullscreen_rdp_file_has_screen_mode_2_and_no_resolution()
+    {
+        var launcher = new CapturingProcessLauncher();
+        var profile = new RdpConnectionProfile
+        {
+            Name = "Test", Host = "192.168.1.1", Username = "user",
+            Fullscreen = true,
+        };
+        var session = MakeSession(new FixedBackendLocator("mstsc.exe"), profile, launcher);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => session.ConnectAsync());
+
+        var rdpPath = launcher.CapturedPsi!.ArgumentList[0];
+        var content = File.ReadAllText(rdpPath);
+        await session.DisposeAsync();
+
+        Assert.Contains("screen mode id:i:2", content);
+        Assert.DoesNotContain("desktopwidth", content);
+        Assert.DoesNotContain("desktopheight", content);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────
 
     private static RdpConnectionProfile MakeProfile() => new()
@@ -218,6 +305,20 @@ public sealed class RdpSessionTests
     private sealed class NullBackendLocator : IRdpBackendLocator
     {
         public string? FindBackend() => null;
+    }
+
+    /// <summary>Captures the ProcessStartInfo and returns null, causing ConnectAsync to throw
+    /// "Process.Start returned null". Use this to inspect generated arguments without
+    /// actually launching a process.</summary>
+    private sealed class CapturingProcessLauncher : IProcessLauncher
+    {
+        public System.Diagnostics.ProcessStartInfo? CapturedPsi { get; private set; }
+
+        public System.Diagnostics.Process? Start(System.Diagnostics.ProcessStartInfo psi)
+        {
+            CapturedPsi = psi;
+            return null;
+        }
     }
 
     private sealed class FixedBackendLocator : IRdpBackendLocator

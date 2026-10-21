@@ -153,8 +153,15 @@ public sealed class RdpSession : IRemoteSession
         if (!string.IsNullOrWhiteSpace(_profile.Domain))
             psi.ArgumentList.Add($"/d:{_profile.Domain}");
 
-        psi.ArgumentList.Add($"/w:{_profile.DesktopWidth}");
-        psi.ArgumentList.Add($"/h:{_profile.DesktopHeight}");
+        if (_profile.Fullscreen)
+        {
+            psi.ArgumentList.Add("/f");
+        }
+        else
+        {
+            psi.ArgumentList.Add($"/w:{_profile.DesktopWidth}");
+            psi.ArgumentList.Add($"/h:{_profile.DesktopHeight}");
+        }
 
         if (_profile.BypassCertificateValidation)
         {
@@ -195,12 +202,17 @@ public sealed class RdpSession : IRemoteSession
         {
             $"full address:s:{_profile.Host}:{_profile.Port}",
             $"username:s:{user}",
-            $"desktopwidth:i:{_profile.DesktopWidth}",
-            $"desktopheight:i:{_profile.DesktopHeight}",
-            "screen mode id:i:1",
+            $"screen mode id:i:{(_profile.Fullscreen ? 2 : 1)}",
             $"authentication level:i:{(_profile.BypassCertificateValidation ? 0 : 2)}",
             $"prompt for credentials:i:{(hasPassword ? 0 : 1)}",
         };
+
+        if (!_profile.Fullscreen)
+        {
+            lines.Add($"desktopwidth:i:{_profile.DesktopWidth}");
+            lines.Add($"desktopheight:i:{_profile.DesktopHeight}");
+        }
+
         if (_profile.BypassCertificateValidation)
             _logger.LogWarning("RDP certificate validation bypassed for {Host} (per-profile setting)", _profile.Host);
 

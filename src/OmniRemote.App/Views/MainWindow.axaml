@@ -20,7 +20,16 @@
 
         <!-- Title bar -->
         <Border Grid.Row="0" Background="#1E1E2E" Padding="12,8">
-            <TextBlock Text="OmniRemote" FontSize="18" FontWeight="SemiBold" Foreground="White"/>
+            <Grid>
+                <TextBlock Text="OmniRemote" FontSize="18" FontWeight="SemiBold" Foreground="White"
+                           HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <Button Content="{Binding Loc.LanguageToggleLabel}"
+                        Command="{Binding ToggleLanguageCommand}"
+                        HorizontalAlignment="Right"
+                        Background="#313244" Foreground="#CDD6F4"
+                        BorderThickness="0" CornerRadius="4" Padding="10,4"
+                        FontSize="12"/>
+            </Grid>
         </Border>
 
         <!-- Main content: left panel + workspace -->
@@ -33,7 +42,7 @@
                 <!-- Search -->
                 <Border Grid.Row="0" Padding="8,8,8,4">
                     <TextBox Text="{Binding SearchText}"
-                             PlaceholderText="Search connections…"
+                             PlaceholderText="{Binding Loc.SearchPlaceholder}"
                              Background="#313244" Foreground="#CDD6F4"
                              BorderBrush="#45475A" BorderThickness="1"
                              CornerRadius="4" Padding="8,6"/>
@@ -41,16 +50,16 @@
 
                 <!-- Quick Connect form -->
                 <Border Grid.Row="1" Padding="8,4" BorderBrush="#313244" BorderThickness="0,0,0,1">
-                    <Expander Header="Quick Connect" Foreground="#CDD6F4" Background="#181825">
+                    <Expander Header="{Binding Loc.QuickConnectHeader}" Foreground="#CDD6F4" Background="#181825">
                         <StackPanel Spacing="6" Margin="0,6,0,4"
                                     DataContext="{Binding QuickConnect}">
                             <TextBox Text="{Binding Host}"
-                                     PlaceholderText="Host"
+                                     PlaceholderText="{Binding Loc.HostPlaceholder}"
                                      Background="#313244" Foreground="#CDD6F4"
                                      BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="6,4"/>
                             <Grid ColumnDefinitions="*,80">
                                 <TextBox Grid.Column="0" Text="{Binding Username}"
-                                         PlaceholderText="Username"
+                                         PlaceholderText="{Binding Loc.UsernamePlaceholder}"
                                          Background="#313244" Foreground="#CDD6F4"
                                          BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="6,4"
                                          Margin="0,0,4,0"/>
@@ -61,10 +70,10 @@
                                               BorderBrush="#45475A" BorderThickness="1" CornerRadius="4"/>
                             </Grid>
                             <TextBox Text="{Binding Password}" PasswordChar="*"
-                                     PlaceholderText="Password"
+                                     PlaceholderText="{Binding Loc.PasswordPlaceholder}"
                                      Background="#313244" Foreground="#CDD6F4"
                                      BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="6,4"/>
-                            <CheckBox Content="Remember (profile + password)"
+                            <CheckBox Content="{Binding Loc.RememberProfilePassword}"
                                       IsChecked="{Binding Remember}" Foreground="#CDD6F4" FontSize="12"/>
                             <ComboBox ItemsSource="{Binding AvailableProtocols}"
                                       SelectedItem="{Binding Protocol}"
@@ -74,7 +83,7 @@
                             <TextBlock Text="{Binding ValidationError}" Foreground="#F38BA8"
                                        IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                        FontSize="11" TextWrapping="Wrap"/>
-                            <Button Content="Connect"
+                            <Button Content="{Binding Loc.ConnectButton}"
                                     Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).QuickConnectCommand}"
                                     HorizontalAlignment="Stretch"
                                     Background="#89B4FA" Foreground="#1E1E2E"
@@ -85,7 +94,7 @@
 
                 <!-- New profile button -->
                 <Button Grid.Row="2"
-                        Content="+ New Profile"
+                        Content="{Binding Loc.NewProfileButton}"
                         Command="{Binding NewProfileCommand}"
                         HorizontalAlignment="Stretch"
                         Background="#313244" Foreground="#A6E3A1"
@@ -112,7 +121,7 @@
                                            Foreground="#F9E2AF" FontSize="13"
                                            IsVisible="{Binding IsBypassActive}"
                                            VerticalAlignment="Center" Margin="4,0"
-                                           ToolTip.Tip="Security validation is weakened for this profile"/>
+                                           ToolTip.Tip="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Loc.BypassWarningTooltip}"/>
                                 <!-- Edit button -->
                                 <Button Grid.Column="3" Content="✏"
                                         Foreground="#89B4FA" Background="Transparent"
@@ -132,7 +141,7 @@
 
                 <!-- Reload profiles button -->
                 <Button Grid.Row="4"
-                        Content="Reload Profiles"
+                        Content="{Binding Loc.ReloadProfiles}"
                         Command="{Binding LoadProfilesCommand}"
                         HorizontalAlignment="Stretch"
                         Background="#313244" Foreground="#CDD6F4"
@@ -162,10 +171,10 @@
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                                 Spacing="8"
                                 IsVisible="{Binding !Sessions.Count}">
-                        <TextBlock Text="No active sessions"
+                        <TextBlock Text="{Binding Loc.NoActiveSessions}"
                                    Foreground="#585B70" FontSize="18"
                                    HorizontalAlignment="Center"/>
-                        <TextBlock Text="Use Quick Connect or select a saved profile to start a session."
+                        <TextBlock Text="{Binding Loc.NoActiveSessionsHint}"
                                    Foreground="#45475A" FontSize="13"
                                    HorizontalAlignment="Center"/>
                     </StackPanel>
@@ -189,7 +198,7 @@
                                                Foreground="#F9E2AF" FontSize="12"
                                                IsVisible="{Binding IsBypassActive}"
                                                VerticalAlignment="Center"
-                                               ToolTip.Tip="Security validation is weakened for this session"/>
+                                               ToolTip.Tip="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Loc.SessionBypassTooltip}"/>
                                     <TextBlock Text="{Binding DisplayName}"
                                                Foreground="#CDD6F4" VerticalAlignment="Center"
                                                MaxWidth="160" TextTrimming="CharacterEllipsis"/>
@@ -217,7 +226,7 @@
                                     <Border Grid.Row="1"
                                             Background="#3B2A00" Padding="10,6"
                                             IsVisible="{Binding IsBypassActive}">
-                                        <TextBlock Text="⚠  Security validation is weakened for this session. Host-key or certificate checking is disabled."
+                                        <TextBlock Text="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Loc.SessionBypassBanner}"
                                                    Foreground="#F9E2AF" FontSize="12"
                                                    TextWrapping="Wrap"/>
                                     </Border>

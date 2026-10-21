@@ -9,12 +9,12 @@
         <StackPanel Spacing="14" Margin="28,24">
 
             <!-- Header -->
-            <TextBlock Text="Connection Profile"
+            <TextBlock Text="{Binding Loc.ConnectionProfileTitle}"
                        FontSize="20" FontWeight="SemiBold" Foreground="#CDD6F4"/>
 
             <!-- Protocol -->
             <StackPanel Spacing="4">
-                <TextBlock Text="PROTOCOL" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Loc.ProtocolLabel}" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
                 <ComboBox ItemsSource="{Binding AvailableProtocols}"
                           SelectedItem="{Binding Protocol}"
                           HorizontalAlignment="Stretch"
@@ -24,9 +24,9 @@
 
             <!-- Name -->
             <StackPanel Spacing="4">
-                <TextBlock Text="NAME" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Loc.NameLabel}" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
                 <TextBox Text="{Binding Name}"
-                         PlaceholderText="e.g. Production Web Server"
+                         PlaceholderText="{Binding Loc.NameEditorPlaceholder}"
                          Background="#313244" Foreground="#CDD6F4"
                          BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="8,6"/>
             </StackPanel>
@@ -34,14 +34,14 @@
             <!-- Host + Port -->
             <Grid ColumnDefinitions="*,96" ColumnSpacing="8">
                 <StackPanel Grid.Column="0" Spacing="4">
-                    <TextBlock Text="HOST" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding Loc.HostLabel}" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
                     <TextBox Text="{Binding Host}"
-                             PlaceholderText="hostname or IP"
+                             PlaceholderText="{Binding Loc.HostEditorPlaceholder}"
                              Background="#313244" Foreground="#CDD6F4"
                              BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="8,6"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Spacing="4">
-                    <TextBlock Text="PORT" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding Loc.PortLabel}" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
                     <NumericUpDown Value="{Binding Port}"
                                    Minimum="1" Maximum="65535" FormatString="0"
                                    Background="#313244" Foreground="#CDD6F4"
@@ -51,34 +51,78 @@
 
             <!-- Username (hidden for Telnet) -->
             <StackPanel Spacing="4" IsVisible="{Binding IsUsernameRequired}">
-                <TextBlock Text="USERNAME" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Loc.UsernameLabel}" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
                 <TextBox Text="{Binding Username}"
-                         PlaceholderText="username"
+                         PlaceholderText="{Binding Loc.UsernameEditorPlaceholder}"
                          Background="#313244" Foreground="#CDD6F4"
                          BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="8,6"/>
             </StackPanel>
 
             <!-- Password (hidden for Telnet) -->
             <StackPanel Spacing="4" IsVisible="{Binding IsPasswordVisible}">
-                <TextBlock Text="PASSWORD" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Loc.PasswordLabel}" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
                 <TextBox Text="{Binding Password}" PasswordChar="*"
-                         PlaceholderText="leave empty to keep the saved password"
+                         PlaceholderText="{Binding Loc.PasswordEditorPlaceholder}"
                          Background="#313244" Foreground="#CDD6F4"
                          BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="8,6"/>
-                <CheckBox Content="Remember password (stored in the OS keychain)"
+                <CheckBox Content="{Binding Loc.RememberPassword}"
                           IsChecked="{Binding RememberPassword}" Foreground="#CDD6F4"/>
-                <TextBlock Text="A password is already saved for this profile."
+                <TextBlock Text="{Binding Loc.PasswordAlreadySaved}"
                            Foreground="#A6E3A1" FontSize="11"
                            IsVisible="{Binding HasSavedPassword}"/>
             </StackPanel>
 
             <!-- Description -->
             <StackPanel Spacing="4">
-                <TextBlock Text="DESCRIPTION (OPTIONAL)" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Loc.DescriptionLabel}" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
                 <TextBox Text="{Binding Description}"
-                         PlaceholderText="optional note"
+                         PlaceholderText="{Binding Loc.DescriptionPlaceholder}"
                          Background="#313244" Foreground="#CDD6F4"
                          BorderBrush="#45475A" BorderThickness="1" CornerRadius="4" Padding="8,6"/>
+            </StackPanel>
+
+            <!-- RDP Display Settings -->
+            <StackPanel Spacing="8" IsVisible="{Binding IsRdpDisplayVisible}">
+                <TextBlock Text="{Binding Loc.RdpDisplayLabel}"
+                           Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
+
+                <CheckBox Content="{Binding Loc.RdpFullscreenLabel}"
+                          IsChecked="{Binding RdpFullscreen}"
+                          Foreground="#CDD6F4"/>
+
+                <!-- Resolution picker (hidden when fullscreen) -->
+                <StackPanel Spacing="6" IsVisible="{Binding IsRdpResolutionVisible}">
+                    <TextBlock Text="{Binding Loc.RdpResolutionLabel}"
+                               Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding RdpPresets}"
+                              SelectedItem="{Binding SelectedRdpPreset}"
+                              Background="#313244" Foreground="#CDD6F4"
+                              BorderBrush="#45475A" BorderThickness="1" CornerRadius="4"
+                              HorizontalAlignment="Stretch"/>
+
+                    <!-- Custom resolution inputs -->
+                    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="8"
+                          IsVisible="{Binding IsRdpCustomResolutionVisible}">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="{Binding Loc.RdpWidthLabel}"
+                                       Foreground="#6C7086" FontSize="11"/>
+                            <NumericUpDown Value="{Binding RdpDesktopWidth}"
+                                           Minimum="640" Maximum="7680" FormatString="0"
+                                           Background="#313244" Foreground="#CDD6F4"
+                                           BorderBrush="#45475A" BorderThickness="1" CornerRadius="4"/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" Text="×" Foreground="#6C7086"
+                                   VerticalAlignment="Bottom" Margin="0,0,0,6" FontSize="14"/>
+                        <StackPanel Grid.Column="2" Spacing="4">
+                            <TextBlock Text="{Binding Loc.RdpHeightLabel}"
+                                       Foreground="#6C7086" FontSize="11"/>
+                            <NumericUpDown Value="{Binding RdpDesktopHeight}"
+                                           Minimum="480" Maximum="4320" FormatString="0"
+                                           Background="#313244" Foreground="#CDD6F4"
+                                           BorderBrush="#45475A" BorderThickness="1" CornerRadius="4"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
             </StackPanel>
 
             <!-- Divider -->
@@ -86,16 +130,16 @@
 
             <!-- TLS Certificate Bypass (RDP only) -->
             <StackPanel Spacing="8" IsVisible="{Binding IsBypassCertSettingVisible}">
-                <TextBlock Text="SECURITY" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Loc.SecurityLabel}" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
 
-                <CheckBox Content="Bypass TLS certificate validation"
+                <CheckBox Content="{Binding Loc.BypassTlsCert}"
                           IsChecked="{Binding BypassCertificateValidation}"
                           Foreground="#CDD6F4"/>
 
                 <!-- Active bypass indicator -->
                 <Border Background="#3B2A00" CornerRadius="4" Padding="10,6"
                         IsVisible="{Binding BypassCertificateValidation}">
-                    <TextBlock Text="⚠  TLS certificate validation is DISABLED for this profile."
+                    <TextBlock Text="{Binding Loc.TlsDisabledWarning}"
                                Foreground="#F9E2AF" FontSize="12"/>
                 </Border>
 
@@ -104,16 +148,16 @@
                         BorderBrush="#F38BA8" BorderThickness="1"
                         IsVisible="{Binding IsBypassCertConfirmationVisible}">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="⚠  WARNING"
+                        <TextBlock Text="{Binding Loc.WarningHeader}"
                                    Foreground="#F38BA8" FontWeight="SemiBold"/>
-                        <TextBlock Text="Disabling TLS certificate validation exposes this connection to man-in-the-middle attacks. The server's identity will NOT be verified. Only use this on isolated, trusted networks."
+                        <TextBlock Text="{Binding Loc.TlsWarningDetail}"
                                    Foreground="#F38BA8" TextWrapping="Wrap" FontSize="12"/>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="I understand — disable validation"
+                            <Button Content="{Binding Loc.ConfirmDisableTls}"
                                     Command="{Binding ConfirmBypassCertCommand}"
                                     Background="#F38BA8" Foreground="#1E1E2E"
                                     FontWeight="SemiBold" CornerRadius="4" Padding="10,6"/>
-                            <Button Content="Cancel"
+                            <Button Content="{Binding Loc.CancelButton}"
                                     Command="{Binding CancelBypassCertCommand}"
                                     Background="#313244" Foreground="#CDD6F4"
                                     CornerRadius="4" Padding="10,6"/>
@@ -124,16 +168,16 @@
 
             <!-- SSH / SFTP Host-Key Policy -->
             <StackPanel Spacing="8" IsVisible="{Binding IsHostKeySettingVisible}">
-                <TextBlock Text="SECURITY" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Loc.SecurityLabel}" Foreground="#6C7086" FontSize="11" FontWeight="SemiBold"/>
 
-                <CheckBox Content="Disable strict host-key checking"
+                <CheckBox Content="{Binding Loc.DisableStrictHostKey}"
                           IsChecked="{Binding DisableStrictHostKeyChecking}"
                           Foreground="#CDD6F4"/>
 
                 <!-- Active host-key bypass indicator -->
                 <Border Background="#3B2A00" CornerRadius="4" Padding="10,6"
                         IsVisible="{Binding DisableStrictHostKeyChecking}">
-                    <TextBlock Text="⚠  Strict host-key checking is DISABLED for this profile."
+                    <TextBlock Text="{Binding Loc.HostKeyDisabledWarning}"
                                Foreground="#F9E2AF" FontSize="12"/>
                 </Border>
 
@@ -142,16 +186,16 @@
                         BorderBrush="#F38BA8" BorderThickness="1"
                         IsVisible="{Binding IsHostKeyConfirmationVisible}">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="⚠  WARNING"
+                        <TextBlock Text="{Binding Loc.WarningHeader}"
                                    Foreground="#F38BA8" FontWeight="SemiBold"/>
-                        <TextBlock Text="Disabling strict host-key checking exposes this connection to man-in-the-middle attacks. The server's identity will NOT be verified against known hosts. Only use this when you cannot obtain the correct host key."
+                        <TextBlock Text="{Binding Loc.HostKeyWarningDetail}"
                                    Foreground="#F38BA8" TextWrapping="Wrap" FontSize="12"/>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="I understand — disable checking"
+                            <Button Content="{Binding Loc.ConfirmDisableHostKey}"
                                     Command="{Binding ConfirmDisableHostKeyCommand}"
                                     Background="#F38BA8" Foreground="#1E1E2E"
                                     FontWeight="SemiBold" CornerRadius="4" Padding="10,6"/>
-                            <Button Content="Cancel"
+                            <Button Content="{Binding Loc.CancelButton}"
                                     Command="{Binding CancelDisableHostKeyCommand}"
                                     Background="#313244" Foreground="#CDD6F4"
                                     CornerRadius="4" Padding="10,6"/>
@@ -167,11 +211,11 @@
 
             <!-- Save / Cancel -->
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,8">
-                <Button Content="Cancel"
+                <Button Content="{Binding Loc.CancelButton}"
                         Command="{Binding CancelCommand}"
                         Background="#313244" Foreground="#CDD6F4"
                         CornerRadius="4" Padding="16,8"/>
-                <Button Content="Save Profile"
+                <Button Content="{Binding Loc.SaveProfileButton}"
                         Command="{Binding SaveCommand}"
                         Background="#89B4FA" Foreground="#1E1E2E"
                         FontWeight="SemiBold" CornerRadius="4" Padding="16,8"/>

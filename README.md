@@ -66,14 +66,26 @@ Output is placed in `publish/win-x64/` or `publish/linux-x64/` at the solution r
 
 ### Package (self-contained, no .NET install needed)
 
+**Windows (PowerShell — recommended on Windows):**
+
+```powershell
+.\scripts\package.ps1                        # win-x64, linux-x64, osx-x64, osx-arm64
+.\scripts\package.ps1 win-x64               # Windows exe only
+$env:VERSION="1.2.0"; .\scripts\package.ps1 win-x64
+```
+
+**Linux / macOS / Windows (Git Bash):**
+
 ```bash
 scripts/package.sh                     # win-x64, linux-x64, osx-x64, osx-arm64
 scripts/package.sh win-x64             # selected targets only
 VERSION=1.2.0 scripts/package.sh
 ```
 
-Works on Linux, macOS, and Windows (Git Bash); output goes to `dist/`. To bundle an RDP client so
-users install nothing, see [third_party/freerdp/README.md](third_party/freerdp/README.md).
+Output goes to `dist/`. Windows produces `dist/OmniRemote-<version>-win-x64.zip` containing a
+single `OmniRemote.exe` (self-contained, no .NET required).
+
+To bundle an RDP client so users install nothing, see [third_party/freerdp/README.md](third_party/freerdp/README.md).
 RDP backend order: bundled FreeRDP (`rdp/` next to the app) → FreeRDP on PATH → Windows `mstsc.exe`.
 
 ### Saved passwords
@@ -204,14 +216,26 @@ dotnet publish src/OmniRemote.App/OmniRemote.App.csproj /p:PublishProfile=linux-
 
 ### 打包（自帶執行環境，使用者不需安裝 .NET）
 
+**Windows（PowerShell，Windows 上建議使用）：**
+
+```powershell
+.\scripts\package.ps1                        # win-x64、linux-x64、osx-x64、osx-arm64
+.\scripts\package.ps1 win-x64               # 只打包 Windows exe
+$env:VERSION="1.2.0"; .\scripts\package.ps1 win-x64
+```
+
+**Linux / macOS / Windows（Git Bash）：**
+
 ```bash
 scripts/package.sh                     # win-x64、linux-x64、osx-x64、osx-arm64
 scripts/package.sh win-x64             # 只打包指定平台
 VERSION=1.2.0 scripts/package.sh
 ```
 
-可在 Linux、macOS、Windows（Git Bash）執行，輸出在 `dist/`。若要內附 RDP 用戶端、讓使用者免安裝，
-請見 [third_party/freerdp/README.md](third_party/freerdp/README.md)。
+輸出在 `dist/`。Windows 會產生 `dist/OmniRemote-<version>-win-x64.zip`，
+解壓後為單一 `OmniRemote.exe`（自帶執行環境，無需安裝 .NET）。
+
+若要內附 RDP 用戶端、讓使用者免安裝，請見 [third_party/freerdp/README.md](third_party/freerdp/README.md)。
 RDP 後端順序：程式旁 `rdp/` 內附的 FreeRDP → PATH 上的 FreeRDP → Windows 內建 `mstsc.exe`。
 
 ### 記住密碼

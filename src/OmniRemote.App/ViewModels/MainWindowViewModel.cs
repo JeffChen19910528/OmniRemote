@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using OmniRemote.App.Services;
 using OmniRemote.Core.Models;
 using OmniRemote.Protocols.Abstractions;
+using static OmniRemote.App.Services.AppLanguage;
 
 namespace OmniRemote.App.ViewModels;
 
@@ -49,7 +50,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     // ── Status ────────────────────────────────────────────────────────────
 
     [ObservableProperty]
-    public partial string StatusMessage { get; set; } = "OmniRemote ready.";
+    public partial string StatusMessage { get; set; } = LocalizationService.Instance.StatusReady;
 
     // ── Constructor ───────────────────────────────────────────────────────
 
@@ -66,6 +67,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     // ── Commands ──────────────────────────────────────────────────────────
 
     [RelayCommand]
+    public void ToggleLanguage() =>
+        Loc.Language = Loc.Language == English ? TraditionalChinese : English;
+
+    [RelayCommand]
     public async Task LoadProfilesAsync()
     {
         try
@@ -74,11 +79,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             Profiles.Clear();
             foreach (var p in profiles)
                 Profiles.Add(p);
-            StatusMessage = $"{Profiles.Count} profile(s) loaded.";
+            StatusMessage = Loc.StatusProfilesLoaded(Profiles.Count);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Failed to load profiles: {ex.Message}";
+            StatusMessage = Loc.StatusLoadProfilesFailed(ex.Message);
         }
     }
 
@@ -97,7 +102,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (key is not null && _credentialStore is not null && !string.IsNullOrEmpty(QuickConnect.Password))
         {
             try { await _credentialStore.SaveAsync(key, QuickConnect.Password); }
-            catch (Exception ex) { StatusMessage = $"Could not save password: {ex.Message}"; }
+            catch (Exception ex) { StatusMessage = Loc.StatusSavePasswordFailed(ex.Message); }
         }
         if (remember)
         {
@@ -106,7 +111,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
                 await _profileStore.SaveAsync(profile);
                 await LoadProfilesAsync();
             }
-            catch (Exception ex) { StatusMessage = $"Failed to save profile: {ex.Message}"; }
+            catch (Exception ex) { StatusMessage = Loc.StatusSaveProfileFailed(ex.Message); }
         }
 
         await OpenSessionAsync(profile);
@@ -126,7 +131,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (ActiveSession == tab)
             ActiveSession = Sessions.FirstOrDefault();
         await tab.DisposeAsync();
-        StatusMessage = "Session closed.";
+        StatusMessage = Loc.StatusSessionClosed;
     }
 
     [RelayCommand]
@@ -158,11 +163,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             await SyncPasswordAsync(sender as ProfileEditorViewModel, profile);
             await LoadProfilesAsync();
             ActiveEditor = null;
-            StatusMessage = $"Profile '{profile.Name}' saved.";
+            StatusMessage = Loc.StatusProfileSaved(profile.Name);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Failed to save profile: {ex.Message}";
+            StatusMessage = Loc.StatusSaveProfileFailed(ex.Message);
         }
     }
 
@@ -190,7 +195,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         if (!_adapterRegistry.CanHandle(profile))
         {
-            StatusMessage = $"No adapter found for protocol '{profile.Protocol}'.";
+            StatusMessage = Loc.StatusNoAdapter(profile.Protocol.ToString());
             return;
         }
 
@@ -201,19 +206,19 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Failed to create session: {ex.Message}";
+            StatusMessage = Loc.StatusCreateSessionFailed(ex.Message);
             return;
         }
 
         var tab = new SessionTabViewModel(session, profile);
         Sessions.Add(tab);
         ActiveSession = tab;
-        StatusMessage = $"Opening {session.DisplayName}…";
+        StatusMessage = Loc.StatusOpening(session.DisplayName);
 
         await tab.ConnectAsync();
 
         StatusMessage = tab.State == ConnectionState.Connected
-            ? $"Connected: {session.DisplayName}"
-            : $"Failed: {tab.ErrorMessage ?? "unknown error"}";
+            ? Loc.StatusConnected(session.DisplayName)
+            : Loc.StatusConnectFailed(tab.ErrorMessage);
     }
 }

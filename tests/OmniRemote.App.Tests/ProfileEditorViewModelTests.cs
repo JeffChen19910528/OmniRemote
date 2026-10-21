@@ -1,5 +1,6 @@
 using OmniRemote.App.ViewModels;
 using OmniRemote.Core.Models;
+using System.Linq;
 
 namespace OmniRemote.App.Tests;
 
@@ -343,6 +344,126 @@ public sealed class ProfileEditorViewModelTests
     {
         var p = new TelnetConnectionProfile { Name = "x", Host = "x" };
         Assert.False(p.IsBypassActive);
+    }
+
+    // ── RDP display settings ──────────────────────────────────────────────
+
+    [Theory]
+    [InlineData(ProtocolType.Rdp,    true)]
+    [InlineData(ProtocolType.Ssh,    false)]
+    [InlineData(ProtocolType.Sftp,   false)]
+    [InlineData(ProtocolType.Telnet, false)]
+    public void IsRdpDisplayVisible_only_for_Rdp(ProtocolType protocol, bool expected)
+    {
+        var vm = new ProfileEditorViewModel { Protocol = protocol };
+        Assert.Equal(expected, vm.IsRdpDisplayVisible);
+    }
+
+    [Fact]
+    public void IsRdpResolutionVisible_false_when_fullscreen()
+    {
+        var vm = new ProfileEditorViewModel { Protocol = ProtocolType.Rdp, RdpFullscreen = true };
+        Assert.False(vm.IsRdpResolutionVisible);
+    }
+
+    [Fact]
+    public void IsRdpResolutionVisible_true_when_windowed()
+    {
+        var vm = new ProfileEditorViewModel { Protocol = ProtocolType.Rdp, RdpFullscreen = false };
+        Assert.True(vm.IsRdpResolutionVisible);
+    }
+
+    [Fact]
+    public void IsRdpCustomResolutionVisible_true_only_for_custom_preset_and_not_fullscreen()
+    {
+        var vm = new ProfileEditorViewModel { Protocol = ProtocolType.Rdp };
+        vm.SelectedRdpPreset = RdpResolutionPreset.Custom;
+        Assert.True(vm.IsRdpCustomResolutionVisible);
+
+        vm.RdpFullscreen = true;
+        Assert.False(vm.IsRdpCustomResolutionVisible);
+    }
+
+    [Fact]
+    public void Selecting_preset_updates_width_and_height()
+    {
+        var vm = new ProfileEditorViewModel { Protocol = ProtocolType.Rdp };
+        var preset = ProfileEditorViewModel.RdpPresets.First(p => p.Width == 1280 && p.Height == 720);
+        vm.SelectedRdpPreset = preset;
+
+        Assert.Equal(1280, vm.RdpDesktopWidth);
+        Assert.Equal(720, vm.RdpDesktopHeight);
+    }
+
+    [Fact]
+    public void Selecting_custom_preset_does_not_change_width_and_height()
+    {
+        var vm = new ProfileEditorViewModel { Protocol = ProtocolType.Rdp };
+        vm.RdpDesktopWidth = 1600;
+        vm.RdpDesktopHeight = 900;
+        vm.SelectedRdpPreset = RdpResolutionPreset.Custom;
+
+        Assert.Equal(1600, vm.RdpDesktopWidth);
+        Assert.Equal(900, vm.RdpDesktopHeight);
+    }
+
+    [Fact]
+    public void BuildProfile_RDP_reflects_fullscreen_and_resolution()
+    {
+        var vm = MakeValidVm(ProtocolType.Rdp);
+        vm.RdpFullscreen = true;
+
+        var profile = (RdpConnectionProfile)vm.BuildProfile();
+
+        Assert.True(profile.Fullscreen);
+    }
+
+    [Fact]
+    public void BuildProfile_RDP_windowed_stores_chosen_resolution()
+    {
+        var vm = MakeValidVm(ProtocolType.Rdp);
+        vm.RdpFullscreen = false;
+        vm.SelectedRdpPreset = RdpResolutionPreset.Custom;
+        vm.RdpDesktopWidth = 1366;
+        vm.RdpDesktopHeight = 768;
+
+        var profile = (RdpConnectionProfile)vm.BuildProfile();
+
+        Assert.False(profile.Fullscreen);
+        Assert.Equal(1366, profile.DesktopWidth);
+        Assert.Equal(768, profile.DesktopHeight);
+    }
+
+    [Fact]
+    public void Constructor_with_RDP_profile_populates_display_settings()
+    {
+        var profile = new RdpConnectionProfile
+        {
+            Name = "VDI", Host = "vdi.corp.local", Username = "user",
+            Fullscreen = true, DesktopWidth = 1920, DesktopHeight = 1080,
+        };
+
+        var vm = new ProfileEditorViewModel(profile);
+
+        Assert.True(vm.RdpFullscreen);
+        Assert.Equal(1920, vm.RdpDesktopWidth);
+        Assert.Equal(1080, vm.RdpDesktopHeight);
+    }
+
+    [Fact]
+    public void Constructor_with_RDP_non_preset_resolution_selects_custom()
+    {
+        var profile = new RdpConnectionProfile
+        {
+            Name = "VDI", Host = "vdi.corp.local", Username = "user",
+            DesktopWidth = 1440, DesktopHeight = 810,
+        };
+
+        var vm = new ProfileEditorViewModel(profile);
+
+        Assert.True(vm.SelectedRdpPreset?.IsCustom);
+        Assert.Equal(1440, vm.RdpDesktopWidth);
+        Assert.Equal(810, vm.RdpDesktopHeight);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
