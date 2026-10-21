@@ -1,0 +1,68 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OmniRemote.App.ViewModels"
+             x:Class="OmniRemote.App.Views.TerminalView"
+             x:DataType="vm:TerminalViewModel"
+             Focusable="True"
+             Background="#0D1117"
+             Cursor="IBeam">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Font-size toolbar -->
+        <Border Grid.Row="0"
+                Background="#161B22"
+                BorderBrush="#30363D" BorderThickness="0,0,0,1"
+                Padding="8,3">
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <TextBlock Text="A" FontSize="10" Foreground="#8B949E" VerticalAlignment="Center"/>
+                <Button x:Name="DecrBtn"
+                        Content="−"
+                        Padding="6,2" MinWidth="24"
+                        Background="#21262D" Foreground="#CDD6F4"
+                        BorderBrush="#30363D" BorderThickness="1"
+                        CornerRadius="3" FontSize="14"
+                        ToolTip.Tip="Decrease font size (Ctrl+-)"/>
+                <TextBlock x:Name="FontSizeLabel"
+                           Text="{Binding FontSize, StringFormat={}{0:0}}"
+                           Foreground="#8B949E" FontSize="12"
+                           VerticalAlignment="Center" MinWidth="28"
+                           TextAlignment="Center"/>
+                <Button x:Name="IncrBtn"
+                        Content="+"
+                        Padding="6,2" MinWidth="24"
+                        Background="#21262D" Foreground="#CDD6F4"
+                        BorderBrush="#30363D" BorderThickness="1"
+                        CornerRadius="3" FontSize="14"
+                        ToolTip.Tip="Increase font size (Ctrl+=)"/>
+                <Button x:Name="ResetBtn"
+                        Content="Reset"
+                        Padding="6,2"
+                        Background="#21262D" Foreground="#8B949E"
+                        BorderBrush="#30363D" BorderThickness="1"
+                        CornerRadius="3" FontSize="11"
+                        ToolTip.Tip="Reset font size (Ctrl+0)"/>
+                <TextBlock Text="A" FontSize="16" Foreground="#8B949E" VerticalAlignment="Center"/>
+                <TextBlock Text="  Ctrl+Scroll or Ctrl+= / Ctrl+-"
+                           Foreground="#484F58" FontSize="11"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Terminal output -->
+        <ScrollViewer x:Name="Scroll"
+                      Grid.Row="1"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto">
+            <SelectableTextBlock x:Name="OutputBlock"
+                                 Text="{Binding DisplayText}"
+                                 FontFamily="Consolas,Menlo,Courier New,monospace"
+                                 FontSize="{Binding FontSize}"
+                                 Foreground="#E6EDF3"
+                                 Background="Transparent"
+                                 TextWrapping="NoWrap"
+                                 Padding="8,6"/>
+        </ScrollViewer>
+
+    </Grid>
+</UserControl>

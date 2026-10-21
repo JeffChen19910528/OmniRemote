@@ -17,6 +17,9 @@ public sealed partial class SessionTabViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? ErrorMessage { get; set; }
 
+    [ObservableProperty]
+    public partial TerminalViewModel? Terminal { get; set; }
+
     public string DisplayName => _session.DisplayName;
     public ProtocolType Protocol => _session.Protocol;
     public Guid SessionId => _session.SessionId;
@@ -55,6 +58,8 @@ public sealed partial class SessionTabViewModel : ViewModelBase
         try
         {
             await _session.ConnectAsync();
+            if (_session is ITerminalSession ts && _session.State == ConnectionState.Connected)
+                Terminal = new TerminalViewModel(ts);
         }
         catch (Exception ex)
         {
@@ -77,6 +82,8 @@ public sealed partial class SessionTabViewModel : ViewModelBase
 
     public async ValueTask DisposeAsync()
     {
+        Terminal?.Dispose();
+        Terminal = null;
         try { await _session.DisconnectAsync(); } catch { }
         await _session.DisposeAsync();
     }

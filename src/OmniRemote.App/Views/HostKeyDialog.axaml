@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="OmniRemote.App.Views.HostKeyDialog"
+        Width="500" Height="260"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#1E1E2E">
+
+    <Grid RowDefinitions="*,Auto" Margin="24,20,24,16">
+
+        <StackPanel Grid.Row="0" Spacing="14">
+            <TextBlock x:Name="TitleText"
+                       FontSize="15" FontWeight="SemiBold" Foreground="#F9E2AF"/>
+            <TextBlock x:Name="MessageText"
+                       Foreground="#CDD6F4" FontSize="13"
+                       TextWrapping="Wrap"/>
+            <Border Background="#313244" CornerRadius="4" Padding="12,8">
+                <TextBlock x:Name="FingerprintText"
+                           Foreground="#89B4FA"
+                           FontSize="12" TextWrapping="Wrap"/>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Spacing="10">
+            <Button x:Name="RejectButton"
+                    Foreground="#F38BA8" Background="#313244"
+                    BorderThickness="0" CornerRadius="4" Padding="20,8"/>
+            <Button x:Name="TrustButton"
+                    Foreground="#1E1E2E" Background="#A6E3A1"
+                    FontWeight="SemiBold"
+                    BorderThickness="0" CornerRadius="4" Padding="20,8"/>
+        </StackPanel>
+
+    </Grid>
+</Window>

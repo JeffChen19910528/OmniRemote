@@ -241,15 +241,29 @@
                                     </Border>
                                     <!-- Session content area -->
                                     <Border Grid.Row="3" Background="#181825">
-                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                    Spacing="8">
-                                            <TextBlock Text="{Binding DisplayName}"
-                                                       Foreground="#CDD6F4" FontSize="16" FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center"/>
-                                            <TextBlock Text="{Binding State}"
-                                                       Foreground="#6C7086" FontSize="13"
-                                                       HorizontalAlignment="Center"/>
-                                        </StackPanel>
+                                        <Grid>
+                                            <!-- Status placeholder (shown when no terminal is active) -->
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                        Spacing="8"
+                                                        IsVisible="{Binding Terminal, Converter={x:Static ObjectConverters.IsNull}}">
+                                                <TextBlock Text="{Binding DisplayName}"
+                                                           Foreground="#CDD6F4" FontSize="16" FontWeight="SemiBold"
+                                                           HorizontalAlignment="Center"/>
+                                                <TextBlock Text="{Binding State}"
+                                                           Foreground="#6C7086" FontSize="13"
+                                                           HorizontalAlignment="Center"/>
+                                            </StackPanel>
+
+                                            <!-- Terminal view (shown when a terminal session is active) -->
+                                            <ContentControl Content="{Binding Terminal}"
+                                                            IsVisible="{Binding Terminal, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                <ContentControl.ContentTemplate>
+                                                    <DataTemplate x:DataType="vm:TerminalViewModel">
+                                                        <views:TerminalView/>
+                                                    </DataTemplate>
+                                                </ContentControl.ContentTemplate>
+                                            </ContentControl>
+                                        </Grid>
                                     </Border>
                                 </Grid>
                             </DataTemplate>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -189,6 +190,14 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     partial void OnSearchTextChanged(string value) =>
         OnPropertyChanged(nameof(FilteredProfiles));
 
+    // ── Host key confirmation ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Set by the view layer to show a host-key trust dialog.
+    /// If null, unknown host keys are rejected (the protocol-layer default).
+    /// </summary>
+    public Func<HostKeyVerificationRequest, CancellationToken, Task<bool>>? HostKeyConfirmAsync { get; set; }
+
     // ── Session lifecycle ─────────────────────────────────────────────────
 
     public async Task OpenSessionAsync(ConnectionProfile profile)
@@ -209,6 +218,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             StatusMessage = Loc.StatusCreateSessionFailed(ex.Message);
             return;
         }
+
+        if (session is ITerminalSession terminal && HostKeyConfirmAsync is not null)
+            terminal.HostKeyVerificationCallback = HostKeyConfirmAsync;
 
         var tab = new SessionTabViewModel(session, profile);
         Sessions.Add(tab);

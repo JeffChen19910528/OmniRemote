@@ -79,6 +79,16 @@ public sealed partial class LocalizationService : ObservableObject
         : "Disabling strict host-key checking exposes this connection to man-in-the-middle attacks. The server's identity will NOT be verified against known hosts. Only use this when you cannot obtain the correct host key.";
     public string ConfirmDisableHostKey    => IsChinese ? "我了解風險 — 停用驗證"               : "I understand — disable checking";
 
+    // ── Host key dialog ───────────────────────────────────────────────────
+
+    public string HostKeyDialogTitle      => IsChinese ? "未知主機金鑰"                          : "Unknown Host Key";
+    public string HostKeyDialogTrustButton  => IsChinese ? "信任"                               : "Trust";
+    public string HostKeyDialogRejectButton => IsChinese ? "拒絕"                               : "Reject";
+
+    public string HostKeyDialogMessage(string host, int port, string keyType) => IsChinese
+        ? $"無法自動驗證 {host}:{port} 的主機金鑰（{keyType}）。\n指紋如下。您要信任並儲存此金鑰嗎？"
+        : $"The host key for {host}:{port} ({keyType}) could not be automatically verified.\nFingerprint is shown below. Do you want to trust and save this key?";
+
     public string CancelButton             => IsChinese ? "取消"                               : "Cancel";
     public string SaveProfileButton        => IsChinese ? "儲存設定檔"                         : "Save Profile";
 
